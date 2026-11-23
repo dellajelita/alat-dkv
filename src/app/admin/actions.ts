@@ -12,7 +12,12 @@ import {
 
 function refreshAllViews() {
   revalidatePath("/");
+  revalidatePath("/alat");
+  revalidatePath("/ajukan");
+  revalidatePath("/pinjam");
+  revalidatePath("/cek");
   revalidatePath("/admin");
+  revalidatePath("/admin/alat");
 }
 
 export async function tambahAlat(
@@ -140,6 +145,66 @@ export async function perbaruiAlat(
   }
 }
 
+export async function hapusAlat(alatId: number): Promise<AdminActionState> {
+  if (!(await isAdminAuthenticated())) {
+    return { error: "Akses ditolak. Silakan login sebagai admin." };
+  }
+
+  if (!Number.isInteger(alatId) || alatId <= 0) {
+    return { error: "ID alat tidak valid." };
+  }
+
+  try {
+    const supabase = getAdminSupabaseClient();
+
+    const { data: alat, error: cekAlatErr } = await supabase
+      .from("alat")
+      .select("id, nama")
+      .eq("id", alatId)
+      .single();
+
+    if (cekAlatErr || !alat) {
+      return { error: "Data alat tidak ditemukan." };
+    }
+
+    // Alat yang memiliki riwayat peminjaman tidak boleh dihapus
+    const { data: riwayat, error: riwayatErr } = await supabase
+      .from("peminjaman_alat")
+      .select("id")
+      .eq("alat_id", alatId)
+      .limit(1);
+
+    if (riwayatErr) {
+      return { error: "Gagal memeriksa riwayat peminjaman alat." };
+    }
+
+    if ((riwayat ?? []).length > 0) {
+      return {
+        error: `Alat "${alat.nama}" tidak dapat dihapus karena sudah memiliki riwayat peminjaman. Nonaktifkan alat saja bila sudah tidak dipakai.`,
+      };
+    }
+
+    const { error: deleteErr } = await supabase
+      .from("alat")
+      .delete()
+      .eq("id", alatId);
+
+    if (deleteErr) {
+      if (deleteErr.code === "23503") {
+        return {
+          error: `Alat "${alat.nama}" tidak dapat dihapus karena masih memiliki riwayat peminjaman.`,
+        };
+      }
+      return { error: deleteErr.message || "Gagal menghapus alat." };
+    }
+
+    refreshAllViews();
+    return { success: `Alat "${alat.nama}" berhasil dihapus.` };
+  } catch {
+    return { error: "Terjadi kesalahan sistem saat menghapus alat." };
+  }
+}
+
 export async function setujuiPeminjaman(
   peminjamanId: number,
 ): Promise<AdminActionState> {
@@ -242,9 +307,10 @@ export async function tolakPeminjaman(
   }
 
   const alasanTolak = alasanTolakRaw.trim();
-  if (alasanTolak.length < 3 || alasanTolak.length > 120) {
+  if (alasanTolak.length < 5 || alasanTolak.length > 120) {
     return {
-      error: "Alasan penolakan wajib diisi (3 sampai 120 karakter).",
+      error:
+        "Alasan penolakan wajib diisi minimal 5 huruf (maksimal 120 huruf).",
     };
   }
 
