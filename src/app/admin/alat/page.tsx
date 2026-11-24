@@ -60,7 +60,7 @@ async function KontenAdminAlat() {
               AlatDKV • Inventaris Laboratorium
             </p>
             <h1 className="text-xl font-bold text-slate-900">
-              Kelola Data Alat (/admin/alat)
+              Kelola Data Alat
             </h1>
           </div>
 
