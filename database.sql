@@ -68,17 +68,16 @@ GRANT SELECT ON TABLE public.alat TO anon, authenticated;
 -- 4. Data Contoh (Minimal 8 alat [>= 1 nonaktif] & 8 peminjaman [termasuk terlambat])
 INSERT INTO public.alat (nama, kategori, stok, keterangan, aktif)
 VALUES
-  ('Kamera DSLR EOS 90D', 'kamera', 4, 'Body + lensa kit 18-135mm, baterai cadangan', true),
-  ('Kamera Mirrorless X100', 'kamera', 5, 'Lensa prime 23mm, kartu memori SD', true),
-  ('Lampu Studio LED 200W', 'pencahayaan', 6, 'Termasuk softbox dan light stand', true),
+  ('Kamera Mirrorless X100', 'kamera', 5, 'Lensa kit 23mm, baterai cadangan', true),
+  ('Kamera DSLR EOS 90D', 'kamera', 4, 'Body + lensa 18-135mm', true),
+  ('Lampu Studio LED 200W', 'pencahayaan', 6, 'Termasuk softbox dan stand', true),
   ('Microphone Wireless Dual', 'audio', 5, 'Receiver + 2 transmitter clip-on', true),
   ('Pen Tablet Pro Medium', 'tablet', 8, 'Kabel USB-C dan stylus cadangan', true),
+  ('Tripod Video Fluid Head', 'aksesori', 4, 'Tinggi maksimal 165 cm', true),
   ('Gimbal Stabilizer 3-Axis', 'aksesori', 3, 'Cocok untuk kamera mirrorless', true),
-  ('Tripod Video Fluid Head', 'aksesori', 4, 'Tinggi maksimal 165 cm, quick release plate', true),
-  ('Camcorder Legacy HDV', 'kamera', 2, 'Unit lama sedang dalam evaluasi lab', false)
+  ('Kamera Camcorder Lama', 'kamera', 2, 'Unit nonaktif untuk kalibrasi', false)
 ON CONFLICT (nama) DO NOTHING;
 
--- Catatan: sesuaikan tanggal jika ingin menguji skenario tanggal relatif hari ini.
 INSERT INTO public.peminjaman_alat (
   alat_id,
   peminjam,
@@ -106,14 +105,18 @@ SELECT
   v.tgl_dikembalikan::date
 FROM (
   VALUES
+    -- Status 'dipinjam' & tgl_kembali sudah lewat (terlambat relatif 2026-11-24)
     ('Kamera DSLR EOS 90D', 'Raka Pratama', 'XI DKV 1', 'Pemotretan produk tugas mata pelajaran DKV', 1, '2026-11-16', '2026-11-18', 'dipinjam', NULL, NULL, NULL),
-    ('Lampu Studio LED 200W', 'Nadia Putri', 'XI DKV 2', 'Pencahayaan studio foto katalog fashion', 2, '2026-11-24', '2026-11-26', 'menunggu', NULL, NULL, NULL),
-    ('Microphone Wireless Dual', 'Bima Saputra', 'XII DKV 1', 'Perekaman audio wawancara dokumenter pendek', 1, '2026-11-24', '2026-11-25', 'menunggu', NULL, NULL, NULL),
-    ('Pen Tablet Pro Medium', 'Salsa Aurelia', 'X DKV 1', 'Latihan ilustrasi digital karakter dasar', 2, '2026-11-10', '2026-11-12', 'dikembalikan', NULL, 'baik', '2026-11-12'),
+    ('Microphone Wireless Dual', 'Keisha Maharani', 'XII DKV 1', 'Rekaman narasi video promosi lab DKV', 1, '2026-11-17', '2026-11-19', 'dipinjam', NULL, NULL, NULL),
+    -- Status 'menunggu'
+    ('Lampu Studio LED 200W', 'Nadia Putri', 'XI DKV 2', 'Pencahayaan studio foto katalog fashion', 2, '2026-11-25', '2026-11-27', 'menunggu', NULL, NULL, NULL),
+    ('Pen Tablet Pro Medium', 'Bima Saputra', 'XII DKV 1', 'Latihan ilustrasi digital karakter dasar', 1, '2026-11-25', '2026-11-26', 'menunggu', NULL, NULL, NULL),
+    -- Status 'dikembalikan'
+    ('Kamera Mirrorless X100', 'Salsa Aurelia', 'X DKV 1', 'Dokumentasi kegiatan ekstrakurikuler sekolah', 1, '2026-11-10', '2026-11-12', 'dikembalikan', NULL, 'baik', '2026-11-12'),
     ('Gimbal Stabilizer 3-Axis', 'Dimas Ramadhan', 'XII DKV 2', 'Pengambilan video gerak halus tugas akhir', 1, '2026-11-09', '2026-11-11', 'dikembalikan', NULL, 'rusak ringan', '2026-11-13'),
-    ('Tripod Video Fluid Head', 'Alya Rahma', 'XI DKV 1', 'Stabilisasi kamera saat liputan pameran', 1, '2026-11-12', '2026-11-14', 'ditolak', 'Jadwal bentrok dengan kegiatan praktik kelas lain', NULL, NULL),
-    ('Kamera Mirrorless X100', 'Fajar Nugroho', 'XI DKV 2', 'Dokumentasi kegiatan ekstrakurikuler sekolah', 1, '2026-11-05', '2026-11-07', 'dikembalikan', NULL, 'baik', '2026-11-07'),
-    ('Microphone Wireless Dual', 'Keisha Maharani', 'XII DKV 1', 'Rekaman narasi video promosi lab DKV', 1, '2026-11-17', '2026-11-19', 'dipinjam', NULL, NULL, NULL)
+    ('Pen Tablet Pro Medium', 'Fajar Nugroho', 'XI DKV 2', 'Desain poster acara sekolah dan kelas', 2, '2026-11-05', '2026-11-07', 'dikembalikan', NULL, 'baik', '2026-11-07'),
+    -- Status 'ditolak'
+    ('Tripod Video Fluid Head', 'Alya Rahma', 'XI DKV 1', 'Stabilisasi kamera saat liputan pameran', 1, '2026-11-12', '2026-11-14', 'ditolak', 'Jadwal bentrok dengan kegiatan praktik kelas lain', NULL, NULL)
 ) AS v(
   nama_alat,
   peminjam,
