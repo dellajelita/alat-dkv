@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState, useTransition } from "react";
 import { hapusAlat, perbaruiAlat, tambahAlat } from "@/app/admin/actions";
 import type { AdminActionState, AdminAlatRow } from "@/lib/admin";
@@ -50,7 +51,7 @@ function BarisAlatAdmin({
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
-      <div className="flex flex-wrap items-start justify-between gap-2 border-b border-slate-100 pb-3">
+      <div className="flex flex-col gap-3 border-b border-slate-100 pb-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-base font-bold text-slate-900">{alat.nama}</h3>
@@ -78,7 +79,7 @@ function BarisAlatAdmin({
           type="button"
           onClick={handleHapus}
           disabled={isPending}
-          className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100 disabled:opacity-50"
+          className="self-start rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100 disabled:opacity-50"
         >
           {isPending ? "Memproses..." : "Hapus"}
         </button>
@@ -156,8 +157,70 @@ export default function KelolaAlatAdminClient({
     null,
   );
 
+  const totalAlatAktif = daftarAlat.filter((item) => item.aktif).length;
+  const totalUnitStok = daftarAlat.reduce((sum, item) => sum + item.stok, 0);
+  const totalTersedia = daftarAlat.reduce(
+    (sum, item) => sum + item.stok_tersedia,
+    0,
+  );
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      {/* Navigasi Kembali & Ringkasan Inventaris */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+        <div className="flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600">
+              ALATDKV • INVENTARIS & KELOLA ALAT
+            </p>
+            <h1 className="mt-0.5 text-xl font-bold text-slate-900">
+              Kelola Inventaris Alat Laboratorium
+            </h1>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/admin"
+              className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+            >
+              ← Kembali ke Admin
+            </Link>
+            <Link
+              href="/alat"
+              className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+            >
+              Lihat Katalog
+            </Link>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <p className="text-xs font-medium text-slate-500">Jenis Alat</p>
+            <p className="mt-1 text-lg font-bold text-slate-900">
+              {daftarAlat.length}{" "}
+              <span className="text-xs font-normal text-slate-500">
+                ({totalAlatAktif} aktif)
+              </span>
+            </p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <p className="text-xs font-medium text-slate-500">
+              Total Unit Stok
+            </p>
+            <p className="mt-1 text-lg font-bold text-slate-900">
+              {totalUnitStok} unit
+            </p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <p className="text-xs font-medium text-slate-500">Siap Dipinjam</p>
+            <p className="mt-1 text-lg font-bold text-emerald-700">
+              {totalTersedia} unit
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Form Tambah Alat Baru */}
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
         <h2 className="text-base font-bold text-slate-900">Tambah Alat Baru</h2>
