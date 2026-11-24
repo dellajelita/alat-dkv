@@ -65,7 +65,7 @@ export default function BerandaAlatClient() {
   const alatUnggulan = daftarAlat.slice(0, 6);
 
   return (
-    <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
+    <section className="mx-auto w-full max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="text-xl font-bold text-slate-900">
@@ -163,22 +163,22 @@ export default function BerandaAlatClient() {
                     Total Inventaris: {alat.stok} unit
                   </p>
                   <p
-                    className={`mt-0.5 text-xs font-semibold ${tersedia ? "text-emerald-600" : "text-red-600"}`}
+                    className={`mt-0.5 text-xs font-semibold ${
+                      tersedia ? "text-emerald-600" : "text-red-600"
+                    }`}
                   >
-                    {" "}
                     {tersedia
                       ? `Sisa ${alat.stok_tersedia} unit siap dipinjam`
                       : "Stok kosong sementara"}
                   </p>
 
-                  <div className="mt-3 flex items-center gap-2">
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
                     <Link
                       href={`/alat/${alat.id}`}
                       className="flex-1 rounded-lg bg-blue-600 px-3 py-2 text-center text-xs font-semibold text-white transition hover:bg-blue-700"
                     >
-                      {" "}
-                      Lihat detail{" "}
-                    </Link>{" "}
+                      Lihat detail
+                    </Link>
                     <Link
                       href={`/ajukan?alatId=${alat.id}`}
                       className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-center text-xs font-semibold text-slate-700 transition hover:bg-slate-50"

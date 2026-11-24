@@ -15,8 +15,8 @@ export default function NavbarAlatDkv() {
 
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-xs">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3.5 sm:px-6">
-        <div className="flex flex-wrap items-center gap-6">
+      <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3.5 sm:px-6 lg:px-8">
+        <div className="flex flex-wrap items-center gap-4 sm:gap-6">
           <Link
             href="/"
             className="text-lg font-extrabold tracking-tight text-blue-600"
