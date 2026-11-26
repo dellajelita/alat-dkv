@@ -31,6 +31,37 @@ const STATUS_FILTER: { value: FilterAdminStatus; label: string }[] = [
   { value: "ditolak", label: "Ditolak" },
 ];
 
+function formatTanggalId(isoDate: string): string {
+  const parts = isoDate.split("-");
+  if (parts.length !== 3) return isoDate;
+  const [year, month, day] = parts.map(Number);
+  if (!year || !month || !day) return isoDate;
+
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return new Intl.DateTimeFormat("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(date);
+}
+
+function hitungSelisihHari(dariIso: string, sampaiIso: string): number | null {
+  const dariParts = dariIso.split("-").map(Number);
+  const sampaiParts = sampaiIso.split("-").map(Number);
+  if (dariParts.length !== 3 || sampaiParts.length !== 3) return null;
+
+  const dariUtc = Date.UTC(dariParts[0], dariParts[1] - 1, dariParts[2]);
+  const sampaiUtc = Date.UTC(
+    sampaiParts[0],
+    sampaiParts[1] - 1,
+    sampaiParts[2],
+  );
+  if (Number.isNaN(dariUtc) || Number.isNaN(sampaiUtc)) return null;
+
+  return Math.round((sampaiUtc - dariUtc) / (1000 * 60 * 60 * 24));
+}
+
 function badgeStatusClass(status: StatusPeminjaman): string {
   switch (status) {
     case "menunggu":
@@ -52,6 +83,21 @@ function CardPeminjamanAdmin({ item }: { item: AdminPeminjamanRow }) {
   );
   const [feedback, setFeedback] = useState<AdminActionState>({});
   const [isPending, startTransition] = useTransition();
+
+  const hariTerlambat = useMemo(() => {
+    if (item.tgl_dikembalikan) {
+      const selisih = hitungSelisihHari(
+        item.tgl_kembali,
+        item.tgl_dikembalikan,
+      );
+      return selisih !== null && selisih > 0 ? selisih : 0;
+    }
+    if (item.terlambat) {
+      const selisih = hitungSelisihHari(item.tgl_kembali, getLocalDateIso());
+      return selisih !== null && selisih > 0 ? selisih : 0;
+    }
+    return 0;
+  }, [item.tgl_dikembalikan, item.tgl_kembali, item.terlambat]);
 
   function handleSetujui() {
     setFeedback({});
@@ -115,18 +161,24 @@ function CardPeminjamanAdmin({ item }: { item: AdminPeminjamanRow }) {
           </div>
 
           <p className="mt-1 text-sm font-medium text-slate-800">
-            Alat: <span className="text-indigo-700">{item.nama_alat}</span> •{" "}
-            {item.jumlah} unit
+            Alat: <span className="text-indigo-700">{item.nama_alat}</span>{" "}
+            &bull; {item.jumlah} unit
           </p>
           <p className="mt-0.5 text-sm text-slate-600">
             Keperluan: {item.keperluan}
           </p>
           <p className="mt-1 text-xs text-slate-500">
-            Pinjam: {item.tgl_pinjam} &rarr; Kembali: {item.tgl_kembali}
+            Pinjam: {formatTanggalId(item.tgl_pinjam)} &rarr; Kembali:{" "}
+            {formatTanggalId(item.tgl_kembali)}
             {item.tgl_dikembalikan
-              ? ` • Dikembalikan: ${item.tgl_dikembalikan}`
+              ? ` • Dikembalikan: ${formatTanggalId(item.tgl_dikembalikan)}`
               : ""}
             {item.kondisi_kembali ? ` • Kondisi: ${item.kondisi_kembali}` : ""}
+            {hariTerlambat > 0 ? (
+              <span className="ml-1.5 font-semibold text-red-600">
+                &bull; Terlambat {hariTerlambat} hari
+              </span>
+            ) : null}
           </p>
           {item.alasan_tolak ? (
             <p className="mt-1 text-xs font-medium text-red-700">
