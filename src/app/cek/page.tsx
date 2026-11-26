@@ -26,9 +26,9 @@ export default function CekStatusPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-4xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <div>
+      <header className="w-full border-b border-slate-200 bg-white">
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+          <div className="text-left">
             <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600">
               AlatDKV • Pelacakan Status
             </p>
@@ -37,7 +37,7 @@ export default function CekStatusPage() {
             </h1>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
             <button
               type="button"
               onClick={handleBack}
@@ -63,7 +63,7 @@ export default function CekStatusPage() {
 
       <Suspense
         fallback={
-          <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+          <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
             <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">
               Memuat halaman cek status...
             </div>
