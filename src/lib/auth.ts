@@ -44,7 +44,8 @@ function signPayload(encodedPayload: string): string {
     .digest("base64url");
 }
 
-export function createSessionToken(): string {
+export async function createSessionToken(): Promise<string> {
+  await connection();
   const payload = JSON.stringify({
     role: "admin",
     exp: Math.floor(Date.now() / 1000) + MAX_AGE_SECONDS,
@@ -91,7 +92,7 @@ export async function isAdminAuthenticated(): Promise<boolean> {
 
 export async function setAdminSessionCookie(): Promise<void> {
   const cookieStore = await cookies();
-  const token = createSessionToken();
+  const token = await createSessionToken();
   cookieStore.set(COOKIE_NAME, token, {
     httpOnly: true,
     sameSite: "lax",
