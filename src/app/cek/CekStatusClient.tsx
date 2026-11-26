@@ -52,7 +52,7 @@ export default function CekStatusClient() {
   }
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+    <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <form
         onSubmit={handleSubmit}
         className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs"
@@ -101,7 +101,7 @@ export default function CekStatusClient() {
           </div>
         </div>
 
-        <div className="mt-5">
+        <div className="mt-5 flex flex-wrap items-center gap-3">
           <button
             type="submit"
             disabled={isPending}
@@ -130,7 +130,7 @@ export default function CekStatusClient() {
               </h2>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold capitalize text-indigo-700">
                 Status: {hasil.status}
               </span>

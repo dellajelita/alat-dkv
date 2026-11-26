@@ -98,12 +98,13 @@ export async function ajukanPeminjaman(
       };
     }
 
-    // 4. Insert permohonan baru dengan status awal 'menunggu'
-    const { error: insertError } = await supabase
+    // 4. Insert permohonan baru dengan status awal 'menunggu' lalu ambil ID peminjamannya
+    const namaBersih = peminjam.trim();
+    const { data: insertedRow, error: insertError } = await supabase
       .from("peminjaman_alat")
       .insert({
         alat_id: alatId,
-        peminjam: peminjam.trim(),
+        peminjam: namaBersih,
         kelas: kelas.trim(),
         keperluan: keperluan.trim(),
         jumlah,
@@ -113,7 +114,9 @@ export async function ajukanPeminjaman(
         alasan_tolak: null,
         kondisi_kembali: null,
         tgl_dikembalikan: null,
-      });
+      })
+      .select("id")
+      .single();
 
     if (insertError) {
       return {
@@ -124,8 +127,12 @@ export async function ajukanPeminjaman(
     revalidatePath("/");
     revalidatePath("/admin");
 
+    const nomorBaru = insertedRow?.id ? Number(insertedRow.id) : undefined;
+
     return {
       success: `Permohonan peminjaman "${alat.nama}" (${jumlah} unit) berhasil dikirim dengan status menunggu persetujuan admin.`,
+      nomorPeminjaman: nomorBaru,
+      namaPeminjam: namaBersih,
     };
   } catch {
     return {

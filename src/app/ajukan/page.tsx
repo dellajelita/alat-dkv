@@ -61,7 +61,7 @@ async function KontenAjukan({ searchParams }: AjukanPageProps) {
   return (
     <>
       <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4 sm:px-6">
+        <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600">
               AlatDKV • Form Peminjaman
@@ -71,7 +71,7 @@ async function KontenAjukan({ searchParams }: AjukanPageProps) {
             </h1>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2.5">
             <Link
               href="/alat"
               className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
@@ -88,7 +88,38 @@ async function KontenAjukan({ searchParams }: AjukanPageProps) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-6 rounded-2xl border border-indigo-200 bg-indigo-50/70 p-5">
+          <h2 className="text-sm font-bold text-indigo-950">
+            Ketentuan & Syarat Peminjaman Alat DKV
+          </h2>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-xs leading-relaxed text-indigo-900 sm:text-sm">
+            <li>
+              <strong>Jumlah & Kuota:</strong> Maksimal{" "}
+              <strong>1–5 unit</strong> per pengajuan (tidak melebihi stok
+              tersedia), dan setiap peminjam maksimal memiliki{" "}
+              <strong>2 permohonan aktif</strong> (berstatus <em>menunggu</em>{" "}
+              atau <em>dipinjam</em>).
+            </li>
+            <li>
+              <strong>Jadwal & Durasi:</strong> Tanggal pinjam mulai hari ini
+              hingga paling jauh <strong>14 hari ke depan</strong>, durasi
+              peminjaman <strong>maksimal 3 hari</strong>, serta tanggal pinjam
+              maupun tanggal kembali{" "}
+              <strong>bukan hari Sabtu atau Minggu</strong>.
+            </li>
+            <li>
+              <strong>Nomor Peminjaman:</strong> Setelah pengajuan berhasil
+              dikirim, catat <strong>Nomor Peminjaman</strong> yang muncul di
+              layar untuk mengecek status di halaman{" "}
+              <Link href="/cek" className="font-semibold underline">
+                Cek Status
+              </Link>
+              .
+            </li>
+          </ul>
+        </div>
+
         {error ? (
           <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
             Gagal memuat daftar alat: {error.message}
@@ -109,7 +140,7 @@ export default function AjukanPage(props: AjukanPageProps) {
     <div className="min-h-screen bg-slate-50">
       <Suspense
         fallback={
-          <div className="mx-auto max-w-4xl px-4 py-12 text-sm text-slate-600 sm:px-6">
+          <div className="mx-auto w-full max-w-7xl px-4 py-12 text-sm text-slate-600 sm:px-6 lg:px-8">
             Memuat formulir pengajuan...
           </div>
         }

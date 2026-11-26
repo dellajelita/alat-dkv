@@ -18,6 +18,8 @@ export type AlatItem = {
 export type AjukanPeminjamanState = {
   error?: string;
   success?: string;
+  nomorPeminjaman?: number;
+  namaPeminjam?: string;
 };
 
 const KATEGORI_VALID: KategoriAlat[] = [

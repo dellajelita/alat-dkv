@@ -20,10 +20,7 @@ function getTodayIso(): string {
   return `${y}-${m}-${d}`;
 }
 
-export default function FormPinjamClient({
-  daftarAlat,
-  initialAlatId,
-}: Props) {
+export default function FormPinjamClient({ daftarAlat, initialAlatId }: Props) {
   const defaultId = useMemo(() => {
     if (initialAlatId) {
       const found = daftarAlat.find((a) => String(a.id) === initialAlatId);
@@ -38,7 +35,7 @@ export default function FormPinjamClient({
 
   const [state, formAction, isPending] = useActionState(
     ajukanPeminjaman,
-    initialState
+    initialState,
   );
 
   useEffect(() => {
@@ -58,8 +55,8 @@ export default function FormPinjamClient({
       <div className="border-b border-slate-100 pb-4">
         <p className="text-sm text-slate-600">
           Isi data peminjaman di bawah ini. Permohonan akan berstatus{" "}
-          <span className="font-semibold text-amber-700">menunggu</span>{" "}
-          hingga disetujui admin laboratorium.
+          <span className="font-semibold text-amber-700">menunggu</span> hingga
+          disetujui admin laboratorium.
         </p>
 
         {alatTerpilih ? (
@@ -236,15 +233,46 @@ export default function FormPinjamClient({
         {state?.success ? (
           <div
             role="status"
-            className="rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-sm text-emerald-800"
+            className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900"
           >
-            <p>{state.success}</p>
-            <Link
-              href="/"
-              className="mt-2 inline-block font-semibold underline"
-            >
-              Kembali ke katalog alat
-            </Link>
+            <p className="font-medium">{state.success}</p>
+
+            {typeof state.nomorPeminjaman === "number" ? (
+              <div className="mt-3 rounded-lg border border-emerald-300/80 bg-white px-3.5 py-2.5">
+                <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                  Nomor Peminjaman Anda
+                </p>
+                <p className="mt-0.5 text-lg font-extrabold text-slate-900">
+                  #{state.nomorPeminjaman}
+                </p>
+                <p className="mt-1 text-xs text-slate-600">
+                  Simpan nomor ini dan gunakan bersama nama{" "}
+                  <strong className="text-slate-800">
+                    {state.namaPeminjam}
+                  </strong>{" "}
+                  untuk mengecek status di halaman Cek Status.
+                </p>
+              </div>
+            ) : null}
+
+            <div className="mt-3 flex flex-wrap items-center gap-4">
+              {typeof state.nomorPeminjaman === "number" ? (
+                <Link
+                  href={`/cek?nomor=${state.nomorPeminjaman}&nama=${encodeURIComponent(
+                    state.namaPeminjam ?? "",
+                  )}`}
+                  className="inline-block rounded-lg bg-emerald-700 px-3.5 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-800"
+                >
+                  Cek Status Pengajuan Ini
+                </Link>
+              ) : null}
+              <Link
+                href="/"
+                className="inline-block text-xs font-semibold text-emerald-800 underline"
+              >
+                Kembali ke katalog alat
+              </Link>
+            </div>
           </div>
         ) : null}
 
