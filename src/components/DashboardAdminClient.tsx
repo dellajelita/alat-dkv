@@ -1,17 +1,14 @@
 "use client";
 
-import { useActionState, useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import {
   kembalikanPeminjaman,
-  perbaruiAlat,
   setujuiPeminjaman,
-  tambahAlat,
   tolakPeminjaman,
 } from "@/app/admin/actions";
 import {
   getLocalDateIso,
   type AdminActionState,
-  type AdminAlatRow,
   type AdminPeminjamanRow,
   type KondisiKembali,
   type RekapMetrikAdmin,
@@ -20,16 +17,16 @@ import {
 
 type Props = {
   metrik: RekapMetrikAdmin;
-  daftarAlat: AdminAlatRow[];
   daftarPeminjaman: AdminPeminjamanRow[];
 };
 
-const initialActionState: AdminActionState = {};
+type FilterAdminStatus = "semua" | StatusPeminjaman | "terlambat";
 
-const STATUS_FILTER: { value: "semua" | StatusPeminjaman; label: string }[] = [
+const STATUS_FILTER: { value: FilterAdminStatus; label: string }[] = [
   { value: "semua", label: "Semua" },
   { value: "menunggu", label: "Menunggu" },
   { value: "dipinjam", label: "Dipinjam" },
+  { value: "terlambat", label: "Terlambat" },
   { value: "dikembalikan", label: "Dikembalikan" },
   { value: "ditolak", label: "Ditolak" },
 ];
@@ -45,108 +42,6 @@ function badgeStatusClass(status: StatusPeminjaman): string {
     case "ditolak":
       return "bg-red-50 text-red-800 border-red-200";
   }
-}
-
-function RowEditAlat({ alat }: { alat: AdminAlatRow }) {
-  const [state, formAction, isPending] = useActionState(
-    perbaruiAlat,
-    initialActionState,
-  );
-
-  return (
-    <form
-      action={formAction}
-      className="grid grid-cols-1 gap-3 rounded-lg border border-slate-200 bg-slate-50/60 p-3.5 sm:grid-cols-12 sm:items-center"
-    >
-      <input type="hidden" name="id" value={alat.id} />
-
-      <div className="sm:col-span-4">
-        <div className="flex items-center gap-2">
-          <p className="text-sm font-bold text-slate-900">{alat.nama}</p>
-          <span
-            className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-              alat.aktif
-                ? "bg-emerald-100 text-emerald-800"
-                : "bg-slate-200 text-slate-700"
-            }`}
-          >
-            {alat.aktif ? "Aktif" : "Nonaktif"}
-          </span>
-        </div>
-        <p className="text-xs text-slate-500 capitalize">
-          {alat.kategori} • Dipinjam: {alat.sedang_dipinjam} • Tersedia:{" "}
-          <span className="font-semibold text-slate-700">
-            {alat.stok_tersedia}
-          </span>
-        </p>
-      </div>
-
-      <div className="sm:col-span-2">
-        <label className="block text-[11px] font-medium text-slate-600">
-          Stok (0–50)
-        </label>
-        <input
-          type="number"
-          name="stok"
-          min={0}
-          max={50}
-          defaultValue={alat.stok}
-          required
-          className="mt-0.5 w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-sm text-slate-900"
-        />
-      </div>
-
-      <div className="sm:col-span-3">
-        <label className="block text-[11px] font-medium text-slate-600">
-          Keterangan
-        </label>
-        <input
-          type="text"
-          name="keterangan"
-          maxLength={160}
-          defaultValue={alat.keterangan}
-          placeholder="Catatan kondisi / kelengkapan"
-          className="mt-0.5 w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-sm text-slate-900"
-        />
-      </div>
-
-      <div className="sm:col-span-2">
-        <label className="block text-[11px] font-medium text-slate-600">
-          Status Alat
-        </label>
-        <select
-          name="aktif"
-          defaultValue={alat.aktif ? "true" : "false"}
-          className="mt-0.5 w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-sm text-slate-900"
-        >
-          <option value="true">Aktif</option>
-          <option value="false">Nonaktif</option>
-        </select>
-      </div>
-
-      <div className="flex flex-col items-stretch gap-1 sm:col-span-1 sm:items-end">
-        <span className="hidden text-[11px] text-transparent sm:block">.</span>
-        <button
-          type="submit"
-          disabled={isPending}
-          className="w-full rounded-md bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
-        >
-          {isPending ? "..." : "Simpan"}
-        </button>
-      </div>
-
-      {state?.error ? (
-        <p className="text-xs font-medium text-red-700 sm:col-span-12">
-          {state.error}
-        </p>
-      ) : null}
-      {state?.success ? (
-        <p className="text-xs font-medium text-emerald-700 sm:col-span-12">
-          {state.success}
-        </p>
-      ) : null}
-    </form>
-  );
 }
 
 function CardPeminjamanAdmin({ item }: { item: AdminPeminjamanRow }) {
@@ -196,6 +91,9 @@ function CardPeminjamanAdmin({ item }: { item: AdminPeminjamanRow }) {
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-700">
+              #{item.id}
+            </span>
             <h3 className="text-base font-bold text-slate-900">
               {item.peminjam}
             </h3>
@@ -260,9 +158,9 @@ function CardPeminjamanAdmin({ item }: { item: AdminPeminjamanRow }) {
               type="text"
               value={alasanTolak}
               onChange={(e) => setAlasanTolak(e.target.value)}
-              placeholder="Alasan penolakan (wajib diisi jika menolak)..."
+              placeholder="Alasan penolakan (minimal 5 huruf)..."
               required
-              minLength={3}
+              minLength={5}
               maxLength={120}
               className="flex-1 rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400"
             />
@@ -338,19 +236,15 @@ function CardPeminjamanAdmin({ item }: { item: AdminPeminjamanRow }) {
 
 export default function DashboardAdminClient({
   metrik,
-  daftarAlat,
   daftarPeminjaman,
 }: Props) {
-  const [filterStatus, setFilterStatus] = useState<"semua" | StatusPeminjaman>(
-    "semua",
-  );
-  const [tambahState, tambahAction, isAdding] = useActionState(
-    tambahAlat,
-    initialActionState,
-  );
+  const [filterStatus, setFilterStatus] = useState<FilterAdminStatus>("semua");
 
   const peminjamanTersaring = useMemo(() => {
     if (filterStatus === "semua") return daftarPeminjaman;
+    if (filterStatus === "terlambat") {
+      return daftarPeminjaman.filter((row) => row.terlambat);
+    }
     return daftarPeminjaman.filter((row) => row.status === filterStatus);
   }, [daftarPeminjaman, filterStatus]);
 
@@ -431,116 +325,6 @@ export default function DashboardAdminClient({
             ))}
           </div>
         )}
-      </section>
-
-      {/* Bagian Kelola Alat */}
-      <section className="space-y-4">
-        <div>
-          <h2 className="text-lg font-bold text-slate-900">
-            Kelola Inventaris Alat
-          </h2>
-          <p className="text-sm text-slate-600">
-            Tambah alat baru atau perbarui stok, keterangan, dan status
-            aktif/nonaktif.
-          </p>
-        </div>
-
-        {/* Form Tambah Alat */}
-        <form
-          action={tambahAction}
-          className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
-        >
-          <h3 className="text-sm font-bold text-slate-900">Tambah Alat Baru</h3>
-          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-12">
-            <div className="sm:col-span-4">
-              <label className="block text-xs font-medium text-slate-700">
-                Nama Alat
-              </label>
-              <input
-                type="text"
-                name="nama"
-                required
-                minLength={3}
-                maxLength={40}
-                placeholder="Contoh: Ring Light 18 Inch"
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-900"
-              />
-            </div>
-
-            <div className="sm:col-span-3">
-              <label className="block text-xs font-medium text-slate-700">
-                Kategori
-              </label>
-              <select
-                name="kategori"
-                defaultValue="kamera"
-                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900"
-              >
-                <option value="kamera">Kamera</option>
-                <option value="pencahayaan">Pencahayaan</option>
-                <option value="audio">Audio</option>
-                <option value="tablet">Tablet</option>
-                <option value="aksesori">Aksesori</option>
-              </select>
-            </div>
-
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-medium text-slate-700">
-                Stok Awal
-              </label>
-              <input
-                type="number"
-                name="stok"
-                min={0}
-                max={50}
-                defaultValue={1}
-                required
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-900"
-              />
-            </div>
-
-            <div className="sm:col-span-3">
-              <label className="block text-xs font-medium text-slate-700">
-                Keterangan
-              </label>
-              <input
-                type="text"
-                name="keterangan"
-                maxLength={160}
-                placeholder="Kelengkapan / catatan"
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-900"
-              />
-            </div>
-          </div>
-
-          {tambahState?.error ? (
-            <p className="mt-2.5 text-xs font-medium text-red-700">
-              {tambahState.error}
-            </p>
-          ) : null}
-          {tambahState?.success ? (
-            <p className="mt-2.5 text-xs font-medium text-emerald-700">
-              {tambahState.success}
-            </p>
-          ) : null}
-
-          <div className="mt-3">
-            <button
-              type="submit"
-              disabled={isAdding}
-              className="rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-60"
-            >
-              {isAdding ? "Menyimpan..." : "Tambah Alat"}
-            </button>
-          </div>
-        </form>
-
-        {/* Daftar Alat untuk Diedit */}
-        <div className="space-y-2.5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          {daftarAlat.map((alat) => (
-            <RowEditAlat key={alat.id} alat={alat} />
-          ))}
-        </div>
       </section>
     </div>
   );

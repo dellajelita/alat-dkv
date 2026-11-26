@@ -3,12 +3,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isAdminAuthenticated } from "@/lib/auth";
 import { getAdminSupabaseClient } from "@/lib/supabase";
-import { isKategoriValid } from "@/lib/peminjaman";
 import { logoutAdmin } from "@/app/login/actions";
 import {
   getLocalDateIso,
   isKondisiKembaliValid,
-  type AdminAlatRow,
   type AdminPeminjamanRow,
   type RekapMetrikAdmin,
   type StatusPeminjaman,
@@ -35,8 +33,7 @@ async function KontenAdmin() {
 
   const { data: rowsAlat, error: errAlat } = await supabase
     .from("alat")
-    .select("id, nama, kategori, stok, keterangan, aktif")
-    .order("id", { ascending: true });
+    .select("id, nama, aktif");
 
   const { data: rowsPinjam, error: errPinjam } = await supabase
     .from("peminjaman_alat")
@@ -46,36 +43,9 @@ async function KontenAdmin() {
     .order("dibuat", { ascending: false });
 
   const mapNamaAlat = new Map<number, string>();
-  const mapDipinjamPerAlat = new Map<number, number>();
-
-  for (const p of rowsPinjam ?? []) {
-    if (String(p.status) === "dipinjam") {
-      const aid = Number(p.alat_id);
-      const jml = Number(p.jumlah || 0);
-      mapDipinjamPerAlat.set(aid, (mapDipinjamPerAlat.get(aid) ?? 0) + jml);
-    }
+  for (const a of rowsAlat ?? []) {
+    mapNamaAlat.set(Number(a.id), String(a.nama));
   }
-
-  const daftarAlat: AdminAlatRow[] = (rowsAlat ?? [])
-    .filter((r) => isKategoriValid(String(r.kategori)))
-    .map((r) => {
-      const id = Number(r.id);
-      const stok = Number(r.stok);
-      const sedangDipinjam = mapDipinjamPerAlat.get(id) ?? 0;
-      const stokTersedia = Math.max(0, stok - sedangDipinjam);
-      mapNamaAlat.set(id, String(r.nama));
-
-      return {
-        id,
-        nama: String(r.nama),
-        kategori: r.kategori as AdminAlatRow["kategori"],
-        stok,
-        keterangan: String(r.keterangan ?? ""),
-        aktif: Boolean(r.aktif),
-        sedang_dipinjam: sedangDipinjam,
-        stok_tersedia: stokTersedia,
-      };
-    });
 
   const daftarPeminjaman: AdminPeminjamanRow[] = (rowsPinjam ?? [])
     .filter((r) => isStatusValid(String(r.status)))
@@ -107,7 +77,7 @@ async function KontenAdmin() {
     });
 
   const metrik: RekapMetrikAdmin = {
-    totalAlatAktif: daftarAlat.filter((a) => a.aktif).length,
+    totalAlatAktif: (rowsAlat ?? []).filter((a) => Boolean(a.aktif)).length,
     menunggu: daftarPeminjaman.filter((p) => p.status === "menunggu").length,
     dipinjam: daftarPeminjaman.filter((p) => p.status === "dipinjam").length,
     terlambat: daftarPeminjaman.filter((p) => p.terlambat).length,
@@ -116,7 +86,7 @@ async function KontenAdmin() {
   return (
     <>
       <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600">
               AlatDKV • Panel Pengelola Laboratorium
@@ -153,7 +123,7 @@ async function KontenAdmin() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {errAlat || errPinjam ? (
           <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
             Gagal memuat data dashboard:{" "}
@@ -162,7 +132,6 @@ async function KontenAdmin() {
         ) : (
           <DashboardAdminClient
             metrik={metrik}
-            daftarAlat={daftarAlat}
             daftarPeminjaman={daftarPeminjaman}
           />
         )}
@@ -176,7 +145,7 @@ export default function AdminPage() {
     <div className="min-h-screen bg-slate-50">
       <Suspense
         fallback={
-          <div className="mx-auto max-w-6xl px-4 py-12 text-sm text-slate-600 sm:px-6">
+          <div className="mx-auto w-full max-w-7xl px-4 py-12 text-sm text-slate-600 sm:px-6 lg:px-8">
             Memuat dashboard admin...
           </div>
         }
